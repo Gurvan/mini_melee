@@ -14,6 +14,7 @@ pub struct Deadzone {
     pub r_analog:  u8,
 }
 
+#[allow(dead_code)]
 impl Deadzone {
     pub fn empty() -> Self {
         Deadzone {
