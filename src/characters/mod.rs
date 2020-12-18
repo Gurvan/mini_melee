@@ -1,6 +1,24 @@
-pub mod FOX;
+pub mod helper;
+pub mod characters;
+mod FOX;
 use crate::player::Player;
 use crate::input::Input;
+
+#[derive(Debug)]
+pub struct Character {
+    pub ACTIONSTATE: &'static CharacterActionStates,
+    pub ATTRIBUTE: &'static CharacterAttributes,
+    pub FRAMEDATA: &'static CharacterFrameData, 
+}
+
+
+#[derive(Debug)]
+pub struct CharacterActionStates {
+    pub WAIT: &'static dyn ActionState,
+    pub KNEEBEND: &'static dyn ActionState,
+    pub JUMPF: &'static dyn ActionState,
+}
+
 
 #[derive(Debug)]
 pub struct CharacterAttributes {
@@ -32,13 +50,13 @@ pub struct CharacterAttributes {
     pub doublejump_multiplier: f32,
 }
 
-#[derive(Debug)]
-pub enum CharacterID {
-    FOX = 10,
-}
+// #[derive(Debug)]
+// pub enum CharacterID {
+//     FOX = 10,
+// }
 
 #[derive(Debug)]
-pub struct FrameData {
+pub struct CharacterFrameData {
     pub WAIT: i32,
     pub DASH: i32,
     pub RUN: i32,
@@ -54,10 +72,11 @@ pub struct FrameData {
     pub JUMPAERIALB: i32,
 }
 
-pub trait ActionState: std::fmt::Debug {
-    fn init(&self, player: &mut Player, input: &Input);
-    fn main(&self, player: &mut Player, input: &Input);
-    fn interrupt(&self, player: &mut Player, input: &Input) -> bool;
+
+pub trait ActionState : std::fmt::Debug + Sync {
+    fn init(&'static self, player: &mut Player, input: &Input);
+    fn main(&'static self, player: &mut Player, input: &Input);
+    fn interrupt(&'static self, player: &mut Player, input: &Input) -> bool;
 }
 
 
