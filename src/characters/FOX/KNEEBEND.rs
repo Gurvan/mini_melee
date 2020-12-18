@@ -32,7 +32,7 @@ impl ActionState for Kneebend {
         player.timer += 1;
         // Define shorthop / full jump. To do later
         if !self.interrupt(player, input) {
-             if !input.current().x {
+             if !input.current().x && !input.current().y {
                  player.physic.jump_type = 0;
              }
         }
@@ -42,6 +42,7 @@ impl ActionState for Kneebend {
             player.physic.position.y += 0.001;
         }
         if player.timer > player.character.ATTRIBUTE.jumpsquat {
+            // TODO: implement jumping back
             player.character.ACTIONSTATE.JUMPF.init(player, input);
             return true;
         }

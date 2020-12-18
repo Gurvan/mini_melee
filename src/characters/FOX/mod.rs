@@ -2,6 +2,7 @@ use super::{Character, CharacterActionStates, CharacterAttributes, CharacterFram
 pub mod WAIT;
 pub mod KNEEBEND;
 pub mod JUMPF;
+pub mod FALL;
 
 
 // pub static FOX: Character = Character {
@@ -58,6 +59,7 @@ pub static ACTIONSTATE: &CharacterActionStates = &CharacterActionStates {
     WAIT: WAIT::WAIT,
     KNEEBEND: KNEEBEND::KNEEBEND,
     JUMPF: JUMPF::JUMPF,
+    FALL: FALL::FALL,
 };
 
 pub static FRAMEDATA: &CharacterFrameData = &CharacterFrameData {
