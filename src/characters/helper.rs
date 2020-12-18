@@ -9,7 +9,7 @@ pub fn fall(player: &mut Player, input: &Input) {
             player.physic.c_vel.y = -player.character.ATTRIBUTE.terminal_velocity;
         }
         // if input.down && !input.previous_down && player.physic.c_vel.y < 0.0 {
-        if input.current.stick_y < -0.65 && player.physic.c_vel.y < 0.0 {
+        if input.current().stick_y < -0.65 && player.physic.c_vel.y < 0.0 {
             player.physic.c_vel.y = -player.character.ATTRIBUTE.fastfall_velocity;
             player.physic.fastfall = true;
         }
@@ -18,7 +18,7 @@ pub fn fall(player: &mut Player, input: &Input) {
 
 pub fn aerial_drift(player: &mut Player, input: &Input) {
     let air_velocity_bound: f32;
-    let lsx = input.current.stick_x;
+    let lsx = input.current().stick_x;
     if lsx.abs() < 0.3 {
         air_velocity_bound = 0.0;
     } else {
@@ -108,23 +108,23 @@ pub fn traction(player: &mut Player, double_traction: bool) {
 
 #[allow(unused_variables)]
 pub fn check_jump(player: &mut Player, input: &Input) -> bool {
-    return (input.current.x && !input.previous.x) || (input.current.y && !input.previous.y);
+    return (input.current().x && !input.previous().x) || (input.current().y && !input.previous().y);
 }
 
 pub fn check_dash(player: &mut Player, input: &Input) -> bool {
-    return (input.current.stick_x * player.physic.facing as f32) > 0.79 && (input.previous2.stick_x * player.physic.facing as f32) < 0.3;
+    return (input.current().stick_x * player.physic.facing as f32) > 0.79 && (input.previous2().stick_x * player.physic.facing as f32) < 0.3;
 }
 
 pub fn check_smashturn(player: &mut Player, input: &Input) -> bool {
-    return (input.current.stick_x * player.physic.facing as f32) < -0.79 && (input.previous2.stick_x * player.physic.facing as f32) > -0.3;
+    return (input.current().stick_x * player.physic.facing as f32) < -0.79 && (input.previous2().stick_x * player.physic.facing as f32) > -0.3;
 }
 
 pub fn check_tiltturn(player: &mut Player, input: &Input) -> bool {
-    return (input.current.stick_x * player.physic.facing as f32) < -0.3;
+    return (input.current().stick_x * player.physic.facing as f32) < -0.3;
 }
 
 pub fn buffer_dash(player: &mut Player, input: &Input) {
-    player.physic.dash_buffer = input.previous.stick_x * player.physic.facing as f32 > -0.3;
+    player.physic.dash_buffer = input.previous().stick_x * player.physic.facing as f32 > -0.3;
 }
 
 pub fn check_foxtrot(player: &mut Player, input: &Input) -> bool {
@@ -133,6 +133,6 @@ pub fn check_foxtrot(player: &mut Player, input: &Input) -> bool {
 
 pub fn check_doublejump(player: &mut Player, input: &Input) -> bool {
     // return (input.x & !input.previous_x & !player.physic.doublejump);
-    return input.current.x & !input.previous.x & !player.physic.doublejump;
+    return input.current().x & !input.previous().x & !player.physic.doublejump;
 }
 

@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use rusb::{DeviceHandle, Error, UsbContext};
 use std::time::Duration;
 
@@ -69,21 +70,36 @@ impl ControllerInput {
 
 #[derive(Debug)]
 pub struct Input {
-    pub current: ControllerInput,
-    pub previous: ControllerInput,
-    pub previous2: ControllerInput,
+    // pub current: ControllerInput,
+    // pub previous: ControllerInput,
+    // pub previous2: ControllerInput,
+    pub list: VecDeque<ControllerInput>,
     pub deadzone: Option<Deadzone>,
 }
 
 impl Input {
     pub fn new() -> Input {
         Input {
-            current: ControllerInput::new(),
-            previous: ControllerInput::new(),
-            previous2: ControllerInput::new(),
+            // current: ControllerInput::new(),
+            // previous: ControllerInput::new(),
+            // previous2: ControllerInput::new(),
+            list: VecDeque::from(vec![ControllerInput::new(); 3]),
             deadzone: None,
         }
-    } 
+    }
+    pub fn update(&mut self, input: ControllerInput) {
+        self.list.push_front(input);
+        self.list.pop_back();
+    }
+    pub fn current(&self) -> ControllerInput {
+        self.list[0]
+    }
+    pub fn previous(&self) -> ControllerInput {
+        self.list[1]
+    }
+    pub fn previous2(&self) -> ControllerInput {
+        self.list[2]
+    }
 }
 
 enum InputSource {
@@ -176,15 +192,22 @@ impl InputManager {
 
     pub fn step(&mut self, input: &mut Input, port: usize) {
         // read input from controllers
-        input.previous2 = input.previous;
-        input.previous = input.current;
+        // input.previous2 = input.previous;
+        // input.previous = input.current;
+        let mut new_input: Option<ControllerInput> = None;
         for source in &mut self.input_sources {
-            match source {
+            new_input = match source {
                 &mut InputSource::GCAdapter { ref mut handle }
-                    => read_gc_adapter(handle, &mut input.current, &mut input.deadzone, port),
+                    => read_gc_adapter(handle, &mut input.deadzone, port),
+                    // => read_gc_adapter(handle, &mut input.current, &mut input.deadzone, port),
                 &mut InputSource::RawInput {}
-                    => read_raw_input(&mut self.raw_data, &mut input.current),
-            }
+                    => read_raw_input(&mut self.raw_data),
+                    // => read_raw_input(&mut self.raw_data, &mut input.current),
+            };
+        };
+        match new_input {
+            Some(i) => input.update(i),
+            None => (),
         }
     }
 
@@ -203,7 +226,9 @@ impl InputManager {
 }
 
 
-pub fn read_raw_input(data: &mut [u8; 8], input: &mut ControllerInput) {
+// pub fn read_raw_input(data: &mut [u8; 8], input: &mut ControllerInput) {
+pub fn read_raw_input(data: &mut [u8; 8]) -> Option<ControllerInput> {
+    let mut input = ControllerInput::new();
     let (stick_x, stick_y) = stick_filter(data[2], data[3]);
     let a = (data[0] & 0b00000001) != 0;
     let x = (data[0] & 0b00000100) | (data[0] & 0b00001000) != 0;
@@ -211,10 +236,12 @@ pub fn read_raw_input(data: &mut [u8; 8], input: &mut ControllerInput) {
     input.stick_y = stick_y;
     input.a = a;
     input.x = x;
+    Some(input)
 }
 
 
-fn read_gc_adapter<T: rusb::UsbContext>(handle: &mut DeviceHandle<T>, input: &mut ControllerInput, deadzone: &mut Option<Deadzone>, port: usize) {
+// fn read_gc_adapter<T: rusb::UsbContext>(handle: &mut DeviceHandle<T>, input: &mut ControllerInput, deadzone: &mut Option<Deadzone>, port: usize) -> Option<ControllerInput> {
+fn read_gc_adapter<T: rusb::UsbContext>(handle: &mut DeviceHandle<T>, deadzone: &mut Option<Deadzone>, port: usize) -> Option<ControllerInput> {
     let mut data: [u8; 37] = [0; 37];
     if let Ok(_) = handle.read_interrupt(0x81, &mut data, Duration::new(1, 0)) {
         // println!("{:?}", &data[..32]);
@@ -222,28 +249,44 @@ fn read_gc_adapter<T: rusb::UsbContext>(handle: &mut DeviceHandle<T>, input: &mu
             // Stick
             let (stick_x, stick_y) = stick_filter(stick_deadzone(data[9*port + 4], deadzone.stick_x), stick_deadzone(data[9*port + 5], deadzone.stick_y));
             let (c_x, c_y) = stick_filter(stick_deadzone(data[9*port + 6], deadzone.c_x), stick_deadzone(data[9*port + 7], deadzone.c_y));
-            input.stick_x = stick_x;
-            input.stick_y = stick_y;
-            input.c_x = c_x;
-            input.c_y = c_y;
-            input.l_analog = trigger_filter(data[9*port+8].saturating_sub(deadzone.l_analog));
-            input.r_analog = trigger_filter(data[9*port+9].saturating_sub(deadzone.r_analog));
-            // A
-            input.a = (data[9*port + 2] & 0b00000001) != 0;
-            // B
-            input.b = (data[9*port + 2] & 0b00000010) != 0;
-            // X
-            input.x = (data[9*port + 2] & 0b00000100) != 0;
-            // Y
-            input.y = (data[9*port + 2] & 0b00001000) != 0;
-            // Z
-            input.z = (data[9*port + 3] & 0b00000010) != 0;
-            // L
-            input.l = (data[9*port + 3] & 0b00001000) != 0;
-            // R
-            input.r = (data[9*port + 3] & 0b00000100) != 0;
-            // Start
-            input.start = (data[9*port + 3] & 0b00000001) != 0;
+            // input.stick_x = stick_x;
+            // input.stick_y = stick_y;
+            // input.c_x = c_x;
+            // input.c_y = c_y;
+            // input.l_analog = trigger_filter(data[9*port+8].saturating_sub(deadzone.l_analog));
+            // input.r_analog = trigger_filter(data[9*port+9].saturating_sub(deadzone.r_analog));
+            // // A
+            // input.a = (data[9*port + 2] & 0b00000001) != 0;
+            // // B
+            // input.b = (data[9*port + 2] & 0b00000010) != 0;
+            // // X
+            // input.x = (data[9*port + 2] & 0b00000100) != 0;
+            // // Y
+            // input.y = (data[9*port + 2] & 0b00001000) != 0;
+            // // Z
+            // input.z = (data[9*port + 3] & 0b00000010) != 0;
+            // // L
+            // input.l = (data[9*port + 3] & 0b00001000) != 0;
+            // // R
+            // input.r = (data[9*port + 3] & 0b00000100) != 0;
+            // // Start
+            // input.start = (data[9*port + 3] & 0b00000001) != 0;
+            return Some(ControllerInput {
+                stick_x: stick_x,
+                stick_y: stick_y,
+                c_x: c_x,
+                c_y: c_y,
+                l_analog: trigger_filter(data[9*port+8].saturating_sub(deadzone.l_analog)),
+                r_analog: trigger_filter(data[9*port+9].saturating_sub(deadzone.r_analog)),
+                a: (data[9*port + 2] & 0b00000001) != 0,
+                b: (data[9*port + 2] & 0b00000010) != 0,
+                x: (data[9*port + 2] & 0b00000100) != 0,
+                y: (data[9*port + 2] & 0b00001000) != 0,
+                z: (data[9*port + 3] & 0b00000010) != 0,
+                l: (data[9*port + 3] & 0b00001000) != 0,
+                r: (data[9*port + 3] & 0b00000100) != 0,
+                start: (data[9*port + 3] & 0b00000001) != 0,
+            })
         } else {
             // Set deadzone
             *deadzone = Some(Deadzone{
@@ -255,8 +298,8 @@ fn read_gc_adapter<T: rusb::UsbContext>(handle: &mut DeviceHandle<T>, input: &mu
                 r_analog: data[9*port + 9],
             });
         }
-
     }
+    None
 }
 
         // for port in 0..4 {

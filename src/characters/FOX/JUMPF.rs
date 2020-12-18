@@ -28,13 +28,13 @@ impl ActionState for Jumpf {
     fn init(&'static self, player: &mut Player, input: &Input) {
         player.action_state = JUMPF;
         player.timer = 0;
-        if player.physic.jump_type > 0 {
+        if player.physic.jump_type > 0 { // TODO: implement enum HOP:0 JUMP:1
             player.physic.c_vel.y += player.character.ATTRIBUTE.jump_initial_y_velocity;
         } else {
             player.physic.c_vel.y += player.character.ATTRIBUTE.hop_initial_y_velocity;
         }
         // Momentum conservation
-        let lsx: f32 = input.current.stick_x;
+        let lsx: f32 = input.current().stick_x;
         player.physic.c_vel.x = player.physic.c_vel.x * player.character.ATTRIBUTE.ground_air_momentum_conservation
                               + lsx * player.character.ATTRIBUTE.jump_initial_x_velocity;
         if player.physic.c_vel.x.abs() > player.character.ATTRIBUTE.jump_max_horizontal_velocity {
