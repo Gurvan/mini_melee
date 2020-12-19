@@ -17,6 +17,7 @@ pub struct CharacterActionStates {
     pub WAIT: &'static dyn ActionState,
     pub KNEEBEND: &'static dyn ActionState,
     pub JUMPF: &'static dyn ActionState,
+    pub JUMPB: &'static dyn ActionState,
     pub FALL: &'static dyn ActionState,
 }
 

@@ -2,7 +2,8 @@ use crate::player::Player;
 use crate::input::Input;
 use crate::characters::ActionState;
 use crate::characters::helper;
-// use super::JUMPAERIAL::JUMPAERIAL;
+use super::FRAMEDATA;
+use super::ACTIONSTATE;
 
 pub struct Fall {  
     // animation: &'static [&'static [(f32, f32)]],
@@ -16,14 +17,14 @@ impl Fall {
     }
 }
 
-pub static FALL: &Fall = &Fall::new();
+pub const FALL: &Fall = &Fall::new();
 
 impl ActionState for Fall {
     // fn animation(&'static self) -> &'static [&'static [(f32, f32)]] {
     //     return self.animation;
     // }
     fn init(&'static self, player: &mut Player, input: &Input) {
-        player.action_state = FALL;
+        player.action_state = self;
         player.timer = 0;
         self.main(player, input);
     }
@@ -39,10 +40,10 @@ impl ActionState for Fall {
             return true;
         }
         // if helper::check_doublejump(player, input) {
-        //     player.character.ACTIONSTATE.JUMPAERIAL.init(player, input);
+        //     ACTIONSTATE.JUMPAERIAL.init(player, input);
         //     return true;
         // }
-        if player.timer > player.character.FRAMEDATA.FALL {
+        if player.timer > FRAMEDATA.FALL {
             FALL.init(player, input);
             return true;
         }

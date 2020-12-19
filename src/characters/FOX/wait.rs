@@ -1,35 +1,32 @@
 use crate::player::Player;
 use crate::input::Input;
-// use super::FRAMEDATA;
 use crate::characters::ActionState;
-// use crate::render::animations;
 use crate::characters::helper;
-// use super::KNEEBEND::KNEEBEND;
-// use super::DASH::DASH;
-// use super::SMASHTURN::SMASHTURN;
-// use super::TILTTURN::TILTTURN;
-// use super::WALK::WALK;
+use super::FRAMEDATA;
+use super::ACTIONSTATE;
 
 pub struct Wait {
+    frame_data: i32,
     // animation: &'static [&'static [(f32, f32)]],
 }
 
 impl Wait {
     const fn new() -> Wait {
         Wait {
+            frame_data: FRAMEDATA.WAIT,
             // animation: animations::WAIT::WAIT,
         }
     }
 }
 
-pub static WAIT: &'static Wait = &Wait::new();
+pub const WAIT: &'static Wait = &Wait::new();
 
 impl ActionState for Wait {
     // fn animation(&self) -> &'static [&'static [(f32, f32)]] {
     //     return self.animation;
     // }
     fn init(&'static self, player: &mut Player, input: &Input) {
-        player.action_state = player.character.ACTIONSTATE.WAIT;
+        player.action_state = ACTIONSTATE.WAIT;
         player.timer = 0;
         self.main(player, input);
     }
@@ -41,7 +38,7 @@ impl ActionState for Wait {
     }
     fn interrupt(&'static self, player: &mut Player, input: &Input) -> bool {
         if helper::check_jump(player, input) {
-            player.character.ACTIONSTATE.KNEEBEND.init(player, input);
+            ACTIONSTATE.KNEEBEND.init(player, input);
             return true;
         }
         // if helper::check_dash(player, input) {
@@ -61,8 +58,8 @@ impl ActionState for Wait {
         //     WALK.init(player, input);
         //     return true;
         // }
-        if player.timer >= player.character.FRAMEDATA.WAIT {
-            player.character.ACTIONSTATE.WAIT.init(player, input);
+        if player.timer >= self.frame_data {
+            self.init(player, input);
             return true;
         }
         return false;
